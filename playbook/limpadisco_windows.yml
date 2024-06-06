@@ -1,28 +1,27 @@
 ---
-- name: Apagar todo o conteúdo da unidade D
-  hosts: all
-  gather_facts: no
-  tasks:
-    - name: Verificar se a unidade D existe
-      win_stat:
-        path: D:\
-      register: drive_d
+  - hosts: all
+    gather_facts: no
+    tasks:
+      - name: Verificar se a unidade D existe
+        win_stat:
+          path: D:\
+        register: drive_d
 
-    - name: Apagar todo o conteúdo da unidade D
-      win_shell: |
-        Remove-Item -Path D:\* -Recurse -Force
-      when: drive_d.stat.exists and drive_d.stat.isdir
+      - name: Apagar todo o conteúdo da unidade D
+        win_shell: |
+          Remove-Item -Path D:\* -Recurse -Force
+        when: drive_d.stat.exists and drive_d.stat.isdir
 
-    - name: Verificar se todo o conteúdo foi apagado
-      win_shell: |
-        if ((Get-ChildItem -Path D:\*).Count -eq 0) {
-          Write-Output "All content deleted successfully."
-        } else {
-          Write-Error "Failed to delete all content."
-        }
-      register: delete_check
-      failed_when: "'Failed to delete all content.' in delete_check.stderr"
+      - name: Verificar se todo o conteúdo foi apagado
+        win_shell: |
+          if ((Get-ChildItem -Path D:\*).Count -eq 0) {
+            Write-Output "All content deleted successfully."
+          } else {
+            Write-Error "Failed to delete all content."
+          }
+        register: delete_check
+        failed_when: "'Failed to delete all content.' in delete_check.stderr"
 
-    - name: Notificar resultado da operação
-      debug:
-        msg: "{{ delete_check.stdout }}"
+      - name: Notificar resultado da operação
+        debug:
+          msg: "{{ delete_check.stdout }}"
