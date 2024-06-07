@@ -1,27 +1,29 @@
 ---
-  - hosts: all
-    gather_facts: no
-    tasks:
-      - name: Verificar se a unidade D existe
-        win_stat:
-          path: D:\
-        register: drive_d
+- name: Apagar todo o conteúdo da unidade D exceto arquivos especificados
+  hosts: windows
+  gather_facts: no
+  tasks:
+    - name: Verificar se a unidade D existe
+      win_stat:
+        path: D:\
+      register: drive_d
 
-      - name: Apagar todo o conteúdo da unidade D
-        win_shell: |
-          Remove-Item -Path D:\* -Recurse -Force
-        when: drive_d.stat.exists and drive_d.stat.isdir
+    - name: Apagar todo o conteúdo da unidade D exceto pagefile.sys e DumpStack.log.tmp
+      win_shell: |
+        Get-ChildItem -Path D:\* -Recurse | Where-Object { $_.Name -notin @("pagefile.sys", "DumpStack.log.tmp") } | Remove-Item -Recurse -Force
+      when: drive_d.stat.exists and drive_d.stat.isdir
 
-      - name: Verificar se todo o conteúdo foi apagado
-        win_shell: |
-          if ((Get-ChildItem -Path D:\*).Count -eq 0) {
-            Write-Output "All content deleted successfully."
-          } else {
-            Write-Error "Failed to delete all content."
-          }
-        register: delete_check
-        failed_when: "'Failed to delete all content.' in delete_check.stderr"
+    - name: Verificar se todo o conteúdo foi apagado, exceto arquivos especificados
+      win_shell: |
+        $remainingFiles = Get-ChildItem -Path D:\* -Recurse | Where-Object { $_.Name -notin @("pagefile.sys", "DumpStack.log.tmp") }
+        if ($remainingFiles.Count -eq 0) {
+          Write-Output "All content deleted successfully, except specified files."
+        } else {
+          Write-Error "Failed to delete all content."
+        }
+      register: delete_check
+      failed_when: "'Failed to delete all content.' in delete_check.stderr"
 
-      - name: Notificar resultado da operação
-        debug:
-          msg: "{{ delete_check.stdout }}"
+    - name: Notificar resultado da operação
+      debug:
+        msg: "{{ delete_check.stdout }}"
