@@ -1,0 +1,33 @@
+---
+- name: Playbook para garantir que o serviço httpd esteja rodando
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Instalar o pacote httpd
+      yum:
+        name: httpd
+        state: present
+
+    - name: Garantir que o serviço httpd esteja habilitado para iniciar no boot
+      systemd:
+        name: httpd
+        enabled: yes
+
+    - name: Garantir que o serviço httpd esteja rodando
+      systemd:
+        name: httpd
+        state: started
+
+    - name: Abrir porta 80 no firewall
+      firewalld:
+        port: 80/tcp
+        permanent: yes
+        state: enabled
+      notify: Reload firewalld
+
+  handlers:
+    - name: Reload firewalld
+      systemd:
+        name: firewalld
+        state: reloaded
