@@ -19,15 +19,3 @@
         name: httpd
         state: started
 
-    - name: Abrir porta 80 no firewall
-      firewalld:
-        port: 80/tcp
-        permanent: yes
-        state: enabled
-      notify: Reload firewalld
-
-  handlers:
-    - name: Reload firewalld
-      systemd:
-        name: firewalld
-        state: reloaded
