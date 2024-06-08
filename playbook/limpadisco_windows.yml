@@ -1,6 +1,6 @@
 ---
 - name: Apagar todo o conteúdo da unidade D exceto arquivos especificados
-  hosts: windows
+  hosts: all
   gather_facts: no
   tasks:
     - name: Verificar se a unidade D existe
